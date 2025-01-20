@@ -77,7 +77,7 @@ if __name__ == "__main__":
     criar_tabela()
     logger.info("Iniciando ETL com atualização a cada 15 segundos... (CTRL+C para interromper)")
 
-    while True:
+    for i in range(20):
         try:
             dados_json = extrair_dados_bitcoin()
             if dados_json:
