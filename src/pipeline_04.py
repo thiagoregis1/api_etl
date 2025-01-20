@@ -18,7 +18,7 @@ logfire.configure()
 basicConfig(handlers=[logfire.LogfireLoggingHandler()])
 logger = getLogger(__name__)
 logger.setLevel(logging.INFO)
-
+logfire.instrument_requests()
 
 load_dotenv()
 
@@ -37,7 +37,7 @@ Session = sessionmaker(bind=engine)
 def criar_tabela():
     """Cria a tabela no banco de dados, se não existir."""
     Base.metadata.create_all(engine)
-    print("Tabela criada/verificada com sucesso!")
+    logger.info("Tabela criada/verificada com sucesso!")
 
 def extrair_dados_bitcoin():
     """Extrai o JSON completo da API da Coinbase."""
@@ -71,23 +71,23 @@ def salvar_dados_postgres(dados):
     session.add(novo_registro)
     session.commit()
     session.close()
-    print(f"[{dados['timestamp']}] Dados salvos no PostgreSQL!")
+    logger.info(f"[{dados['timestamp']}] Dados salvos no PostgreSQL!")
 
 if __name__ == "__main__":
     criar_tabela()
-    print("Iniciando ETL com atualização a cada 15 segundos... (CTRL+C para interromper)")
+    logger.info("Iniciando ETL com atualização a cada 15 segundos... (CTRL+C para interromper)")
 
     while True:
         try:
             dados_json = extrair_dados_bitcoin()
             if dados_json:
                 dados_tratados = tratar_dados_bitcoin(dados_json)
-                print("Dados Tratados:", dados_tratados)
+                logger.info("Dados Tratados:", dados_tratados)
                 salvar_dados_postgres(dados_tratados)
             time.sleep(15)
         except KeyboardInterrupt:
-            print("\nProcesso interrompido pelo usuário. Finalizando...")
+            logger.info("\nProcesso interrompido pelo usuário. Finalizando...")
             break
         except Exception as e:
-            print(f"Erro durante a execução: {e}")
+            logger.info(f"Erro durante a execução: {e}")
             time.sleep(15)
